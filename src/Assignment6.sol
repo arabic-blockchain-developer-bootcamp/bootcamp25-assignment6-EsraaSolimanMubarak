@@ -2,49 +2,40 @@
 pragma solidity ^0.8.13;
 
 contract Assignment6 {
-    // 1. Declare an event called `FundsDeposited` with parameters: `sender` and `amount`
+    // 1. Declare an event `FundsDeposited` to log deposit transactions
+    event FundsDeposited(address indexed sender, uint amount);
 
-    // 2. Declare an event called `FundsWithdrawn` with parameters: `receiver` and `amount`
+    // 2. Declare an event `FundsWithdrawn` to log withdrawal transactions
+    event FundsWithdrawn(address indexed receiver, uint amount);
 
-    // 3. Create a public mapping called `balances` to tracker users balances
+    // 3. A mapping `balances` to track users' balances
+    mapping(address => uint) public balances;
 
-    // Modifier to check if sender has enough balance
+    // 4. Modifier to check if the sender has enough balance
     modifier hasEnoughBalance(uint amount) {
-        // Fill in the logic using require
+        require(balances[msg.sender] >= amount, "Insufficient balance");
         _;
     }
 
-    // Function to deposit Ether
-    // This function should:
-    // - Be external and payable
-    // - Emit the `FundsDeposited` event
-    function deposit() {
-        // increment user balance in balances mapping 
+    // 5. Deposit function (must be `external` and `payable`)
+    function deposit() external payable {
+        require(msg.value > 0, "Deposit amount must be greater than zero");
+        
+        balances[msg.sender] += msg.value;
 
-        // emit suitable event
+        emit FundsDeposited(msg.sender, msg.value);
     }
 
-    // Function to withdraw Ether
-    // This function should:
-    // - Be external
-    // - Take one parameter: `amount`
-    // - Use the `hasEnoughBalance` modifier
-    // - Emit the `FundsWithdrawn` event
-    function withdraw() {
-        // decrement user balance from balances mapping 
+    // 6. Withdraw function (must be `external` and use `hasEnoughBalance` modifier)
+    function withdraw(uint amount) external hasEnoughBalance(amount) {
+        balances[msg.sender] -= amount;
+        payable(msg.sender).transfer(amount);
 
-        // send tokens to the caller
-
-        // emit suitable event
-
+        emit FundsWithdrawn(msg.sender, amount);
     }
 
-    // Function to check the contract balance
-    // This function should:
-    // - Be public and view
-    // - Return the contract's balance
-    function getContractBalance() {
-        // return the balance of the contract
-
+    // 7. `getContractBalance` function to return the contract's total balance
+    function getContractBalance() public view returns (uint) {
+        return address(this).balance;
     }
 }
